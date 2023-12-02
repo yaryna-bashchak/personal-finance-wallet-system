@@ -5,6 +5,10 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PFWS.API", "PFWS.API\PFWS.API.csproj", "{B11C27FB-CA7D-4A2D-83A1-F31945DCE0FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PFWS.BusinessLogicLayer", "PFWS.BusinessLogicLayer\PFWS.BusinessLogicLayer.csproj", "{0F97AEF8-EEA2-453C-A382-CE51DE2843A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PFWS.DataAccessLayer", "PFWS.DataAccessLayer\PFWS.DataAccessLayer.csproj", "{4E59E10E-BB4C-4CA3-8F05-4208D9DD336D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{B11C27FB-CA7D-4A2D-83A1-F31945DCE0FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B11C27FB-CA7D-4A2D-83A1-F31945DCE0FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B11C27FB-CA7D-4A2D-83A1-F31945DCE0FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F97AEF8-EEA2-453C-A382-CE51DE2843A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F97AEF8-EEA2-453C-A382-CE51DE2843A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F97AEF8-EEA2-453C-A382-CE51DE2843A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F97AEF8-EEA2-453C-A382-CE51DE2843A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E59E10E-BB4C-4CA3-8F05-4208D9DD336D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E59E10E-BB4C-4CA3-8F05-4208D9DD336D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E59E10E-BB4C-4CA3-8F05-4208D9DD336D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E59E10E-BB4C-4CA3-8F05-4208D9DD336D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
