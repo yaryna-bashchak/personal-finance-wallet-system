@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using PFWS.BusinessLogicLayer.Services;
 using PFWS.BusinessLogicLayer.Services.Implementation;
+using PFWS.DataAccessLayer.Data;
 using PFWS.DataAccessLayer.Models;
 using PFWS.DataAccessLayer.Repositories;
 using PFWS.DataAccessLayer.Repositories.Implementation;
@@ -15,6 +17,15 @@ public static class DependencyConfiguration
 
         // Services
         services.AddScoped<IAccountService, AccountService>();
+
+        // Identity
+        services.AddIdentityCore<User>(opt =>
+        {
+            opt.Password.RequireNonAlphanumeric = false;
+            opt.User.RequireUniqueEmail = true;
+        })
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<WalletContext>();
 
         return services;
     }
