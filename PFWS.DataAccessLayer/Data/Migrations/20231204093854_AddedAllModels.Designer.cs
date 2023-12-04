@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PFWS.DataAccessLayer.Data;
 
@@ -10,9 +11,11 @@ using PFWS.DataAccessLayer.Data;
 namespace PFWS.DataAccessLayer.Data.Migrations
 {
     [DbContext(typeof(WalletContext))]
-    partial class WalletContextModelSnapshot : ModelSnapshot
+    [Migration("20231204093854_AddedAllModels")]
+    partial class AddedAllModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.14");
@@ -45,13 +48,13 @@ namespace PFWS.DataAccessLayer.Data.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "cea5c6bc-90e1-4475-992d-de65fc228dc2",
+                            Id = "857b21c5-a930-4806-8217-2bc457241d0b",
                             Name = "Member",
                             NormalizedName = "MEMBER"
                         },
                         new
                         {
-                            Id = "10a71cfd-773c-4ca0-8f7f-8bf16e2f8b63",
+                            Id = "f8d902a2-be4a-42a3-9e88-2304ef95149f",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         });
@@ -168,13 +171,7 @@ namespace PFWS.DataAccessLayer.Data.Migrations
                     b.Property<decimal>("Balance")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserId")
