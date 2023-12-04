@@ -9,6 +9,149 @@ public static class DbInitializer
     {
         await InitializeUsers(userManager);
         InitializeAccounts(context);
+        InitializeCategories(context);
+        InitializeTransactions(context);
+    }
+
+    private static void InitializeTransactions(WalletContext context)
+    {
+        if (context.Transactions.Any()) return;
+
+        var transactions = new List<Transaction>
+        {
+            new Transaction
+            {
+                ToAccountId = 1,
+                IncomeCategoryId = 4,
+                Amount = 1000,
+                Date = new DateTime(2023, 12, 2, 16, 0, 0),
+            },
+            new Transaction
+            {
+                ToAccountId = 1,
+                IncomeCategoryId = 4,
+                Amount = 1500,
+                Date = new DateTime(2023, 12, 3, 16, 0, 0),
+            },
+            new Transaction
+            {
+                ToAccountId = 1,
+                IncomeCategoryId = 5,
+                Amount = 200,
+                Date = DateTime.Now,
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ToAccountId = 2,
+                ExpenseCategoryId = 6,
+                IncomeCategoryId = 7,
+                Amount = 1200,
+                Date = DateTime.Now,
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ToAccountId = 2,
+                ExpenseCategoryId = 6,
+                IncomeCategoryId = 7,
+                Amount = 50,
+                Date = DateTime.Now,
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ExpenseCategoryId = 1,
+                Amount = 100,
+                Date = new DateTime(2023, 12, 3, 10, 0, 0),
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ExpenseCategoryId = 1,
+                Amount = 50,
+                Date = new DateTime(2023, 12, 3, 10, 30, 0),
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ExpenseCategoryId = 1,
+                Amount = 20,
+                Date = new DateTime(2023, 12, 3, 12, 0, 0),
+            },
+            new Transaction
+            {
+                FromAccountId = 1,
+                ExpenseCategoryId = 2,
+                Amount = 300,
+                Date = new DateTime(2023, 12, 3, 17, 0, 0),
+            },
+            new Transaction
+            {
+                FromAccountId = 2,
+                ExpenseCategoryId = 3,
+                Amount = 300,
+                Date = new DateTime(2023, 12, 4, 9, 0, 0),
+            },
+        };
+
+        foreach (var transaction in transactions)
+        {
+            context.Transactions.Add(transaction);
+        }
+
+        context.SaveChanges();
+    }
+
+    private static void InitializeCategories(WalletContext context)
+    {
+        if (context.Categories.Any()) return;
+
+        var categories = new List<Category>
+        {
+            new Category
+            {
+                Name = "Food",
+                Type = "expense",
+            },
+            new Category
+            {
+                Name = "Home",
+                Type = "expense",
+            },
+            new Category
+            {
+                Name = "Clothes",
+                Type = "expense",
+            },
+            new Category
+            {
+                Name = "Salary",
+                Type = "income",
+            },
+            new Category
+            {
+                Name = "Interest on deposits",
+                Type = "income",
+            },
+            new Category
+            {
+                Name = "Transfer to another account",
+                Type = "expense",
+            },
+            new Category
+            {
+                Name = "Transfer from another account",
+                Type = "income",
+            },
+        };
+
+        foreach (var category in categories)
+        {
+            context.Categories.Add(category);
+        }
+
+        context.SaveChanges();
     }
 
     private static void InitializeAccounts(WalletContext context)
@@ -23,7 +166,7 @@ public static class DbInitializer
             new Account
             {
                 Name = "Monobank account",
-                Balance = 0,
+                Balance = 500,
                 UserId = userYaryna.Id,
                 CreatedAt = new DateTime(2023, 12, 1, 9, 30, 0),
                 UpdatedAt = new DateTime(2023, 12, 1, 9, 30, 0),
@@ -31,7 +174,7 @@ public static class DbInitializer
             new Account
             {
                 Name = "Privat account",
-                Balance = 100,
+                Balance = 2100,
                 UserId = userYaryna.Id,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
@@ -39,7 +182,7 @@ public static class DbInitializer
             new Account
             {
                 Name = "Credit Agricole account",
-                Balance = 20,
+                Balance = 100,
                 UserId = userYaryna.Id,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
@@ -58,8 +201,16 @@ public static class DbInitializer
         {
             new Account
             {
-                Name = "Monobank account",
-                Balance = 50,
+                Name = "Monobank account 1",
+                Balance = 2000,
+                UserId = userSam.Id,
+                CreatedAt = new DateTime(2023, 12, 2, 13, 30, 0),
+                UpdatedAt = new DateTime(2023, 12, 2, 13, 30, 0),
+            },
+            new Account
+            {
+                Name = "Monobank account 2",
+                Balance = 700,
                 UserId = userSam.Id,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
