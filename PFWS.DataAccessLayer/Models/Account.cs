@@ -1,12 +1,9 @@
 namespace PFWS.DataAccessLayer.Models;
 
-public class Account
+public class Account : EntityBase
 {
-    public int Id { get; set; }
     public string Name { get; set; }
     public decimal Balance { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
     public string UserId { get; set; }
     public User User { get; set; }
     public List<Transaction> TransactionsTo { get; set; }

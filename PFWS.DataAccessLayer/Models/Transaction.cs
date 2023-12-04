@@ -1,9 +1,7 @@
 namespace PFWS.DataAccessLayer.Models;
 
-public class Transaction
+public class Transaction : EntityBase
 {
-    public int Id { get; set; }
-
     public int? FromAccountId { get; set; }
     public Account FromAccount { get; set; }
 
@@ -17,5 +15,4 @@ public class Transaction
     public Category IncomeCategory { get; set; }
 
     public decimal Amount { get; set; }
-    public DateTime Date { get; set; }
 }

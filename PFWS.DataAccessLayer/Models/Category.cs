@@ -1,8 +1,7 @@
 namespace PFWS.DataAccessLayer.Models;
 
-public class Category
+public class Category : EntityBase
 {
-    public int Id { get; set; }
     public string Name { get; set; }
     public string Type { get; set; }
     public List<Transaction> ExpenseTransactions { get; set; }

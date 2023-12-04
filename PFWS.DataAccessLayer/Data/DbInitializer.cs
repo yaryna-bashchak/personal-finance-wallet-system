@@ -24,21 +24,22 @@ public static class DbInitializer
                 ToAccountId = 1,
                 IncomeCategoryId = 4,
                 Amount = 1000,
-                Date = new DateTime(2023, 12, 2, 16, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 2, 16, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 2, 16, 0, 0),
             },
             new Transaction
             {
                 ToAccountId = 1,
                 IncomeCategoryId = 4,
                 Amount = 1500,
-                Date = new DateTime(2023, 12, 3, 16, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 3, 16, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 3, 16, 0, 0),
             },
             new Transaction
             {
                 ToAccountId = 1,
                 IncomeCategoryId = 5,
                 Amount = 200,
-                Date = DateTime.Now,
             },
             new Transaction
             {
@@ -47,7 +48,6 @@ public static class DbInitializer
                 ExpenseCategoryId = 6,
                 IncomeCategoryId = 7,
                 Amount = 1200,
-                Date = DateTime.Now,
             },
             new Transaction
             {
@@ -56,42 +56,46 @@ public static class DbInitializer
                 ExpenseCategoryId = 6,
                 IncomeCategoryId = 7,
                 Amount = 50,
-                Date = DateTime.Now,
             },
             new Transaction
             {
                 FromAccountId = 1,
                 ExpenseCategoryId = 1,
                 Amount = 100,
-                Date = new DateTime(2023, 12, 3, 10, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 3, 10, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 3, 10, 0, 0),
             },
             new Transaction
             {
                 FromAccountId = 1,
                 ExpenseCategoryId = 1,
                 Amount = 50,
-                Date = new DateTime(2023, 12, 3, 10, 30, 0),
+                CreatedAt = new DateTime(2023, 12, 3, 10, 30, 0),
+                UpdatedAt = new DateTime(2023, 12, 3, 10, 30, 0),
             },
             new Transaction
             {
                 FromAccountId = 1,
                 ExpenseCategoryId = 1,
                 Amount = 20,
-                Date = new DateTime(2023, 12, 3, 12, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 3, 12, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 3, 12, 0, 0),
             },
             new Transaction
             {
                 FromAccountId = 1,
                 ExpenseCategoryId = 2,
                 Amount = 300,
-                Date = new DateTime(2023, 12, 3, 17, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 3, 17, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 3, 17, 0, 0),
             },
             new Transaction
             {
                 FromAccountId = 2,
                 ExpenseCategoryId = 3,
                 Amount = 300,
-                Date = new DateTime(2023, 12, 4, 9, 0, 0),
+                CreatedAt = new DateTime(2023, 12, 4, 9, 0, 0),
+                UpdatedAt = new DateTime(2023, 12, 4, 9, 0, 0),
             },
         };
 
@@ -166,7 +170,7 @@ public static class DbInitializer
             new Account
             {
                 Name = "Monobank account",
-                Balance = 500,
+                Balance = 1500,
                 UserId = userYaryna.Id,
                 CreatedAt = new DateTime(2023, 12, 1, 9, 30, 0),
                 UpdatedAt = new DateTime(2023, 12, 1, 9, 30, 0),
@@ -176,16 +180,12 @@ public static class DbInitializer
                 Name = "Privat account",
                 Balance = 2100,
                 UserId = userYaryna.Id,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
             },
             new Account
             {
                 Name = "Credit Agricole account",
                 Balance = 100,
                 UserId = userYaryna.Id,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
             },
         };
 
@@ -212,8 +212,6 @@ public static class DbInitializer
                 Name = "Monobank account 2",
                 Balance = 700,
                 UserId = userSam.Id,
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
             },
         };
 
