@@ -22,7 +22,7 @@ public static class DependencyConfiguration
         services.AddIdentityCore<User>(opt =>
         {
             opt.Password.RequireNonAlphanumeric = false;
-            opt.User.RequireUniqueEmail = true;
+            opt.User.RequireUniqueEmail = false;
         })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<WalletContext>();
