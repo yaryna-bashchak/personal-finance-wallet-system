@@ -32,7 +32,7 @@ public class AccountService : IAccountService
     public async Task DeleteAccount(int id, string username)
     {
         var user = await GetUserByUsername(username);
-        var account = await GetAccountForUser(id, user.Id);
+        var account = await GetAccountById(id, user.Id);
 
         await _repositoryBase.DeleteItem(account);
     }
@@ -40,7 +40,7 @@ public class AccountService : IAccountService
     public async Task<GetAccountDto> GetAccountById(int id, string username)
     {
         var user = await GetUserByUsername(username);
-        var account = await GetAccountForUser(id, user.Id);
+        var account = await GetAccountById(id, user.Id);
 
         var accountDto = MapToAccountDto(account);
 
@@ -61,7 +61,7 @@ public class AccountService : IAccountService
     public async Task UpdateAccount(int id, UpdateAccountDto updatedAccount, string username)
     {
         var user = await GetUserByUsername(username);
-        var account = await GetAccountForUser(id, user.Id);
+        var account = await GetAccountById(id, user.Id);
 
         account.Name = updatedAccount.Name;
 
@@ -76,7 +76,7 @@ public class AccountService : IAccountService
         return user;
     }
 
-    private async Task<Account> GetAccountForUser(int id, string userId)
+    private async Task<Account> GetAccountById(int id, int userId)
     {
         var account = await _repositoryBase.GetItem(id);
         if (account == null)

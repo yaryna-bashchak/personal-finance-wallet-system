@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PFWS.API.Controllers.Controllers;
-using PFWS.BusinessLogicLayer.DTOs.Account;
 using PFWS.BusinessLogicLayer.DTOs.Category;
 using PFWS.BusinessLogicLayer.Services;
 

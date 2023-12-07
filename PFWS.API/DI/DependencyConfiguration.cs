@@ -15,11 +15,13 @@ public static class DependencyConfiguration
         // Repositories
         services.AddScoped<IRepositoryBase<Account>, RepositoryBase<Account>>();
         services.AddScoped<IRepositoryBase<Category>, RepositoryBase<Category>>();
+        services.AddScoped<IRepositoryBase<User>, RepositoryBase<User>>();
         services.AddScoped<IUserRepository, UserRepository>();
 
         // Services
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
 
         // Identity

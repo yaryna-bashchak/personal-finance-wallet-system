@@ -46,8 +46,14 @@ public class AuthController : BaseApiController
     [HttpGet("currentUser")]
     public async Task<ActionResult<LoginedUserDto>> GetCurrentUser()
     {
-        var loginedUser = await _authService.GetCurrentUser(User.Identity.Name);
-
-        return loginedUser;
+        try
+        {
+            var loginedUser = await _authService.GetCurrentUser(User.Identity.Name);
+            return loginedUser;
+        }
+        catch (Exception ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 }

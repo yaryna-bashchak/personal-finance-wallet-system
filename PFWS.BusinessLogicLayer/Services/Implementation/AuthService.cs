@@ -50,6 +50,8 @@ public class AuthService : IAuthService
     public async Task<LoginedUserDto> GetCurrentUser(string username)
     {
         var user = await _userRepository.FindByName(username);
+        if (user == null)
+            throw new Exception("Current user is invalid");
 
         return new LoginedUserDto
         {
