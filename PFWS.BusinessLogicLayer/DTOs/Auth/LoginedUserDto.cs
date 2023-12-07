@@ -1,6 +1,6 @@
 namespace PFWS.BusinessLogicLayer.DTOs.Auth;
 
-public class GetTokenDto
+public class LoginedUserDto
 {
     public string UserId { get; set; }
     public string Username { get; set; }
