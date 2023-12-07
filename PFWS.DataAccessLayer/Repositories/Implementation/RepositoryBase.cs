@@ -1,10 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PFWS.DataAccessLayer.Data;
 using PFWS.DataAccessLayer.Models;
 
 namespace PFWS.DataAccessLayer.Repositories.Implementation;
 
-public class RepositoryBase<T> : IRepositoryBase<T> where T : EntityBase
+public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBaseOrIdentityUser
 {
     private readonly WalletContext _context;
     public RepositoryBase(WalletContext context)

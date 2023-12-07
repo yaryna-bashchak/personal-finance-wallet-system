@@ -15,4 +15,9 @@ public class Transaction : EntityBase
     public Category IncomeCategory { get; set; }
 
     public decimal Amount { get; set; }
+
+    public Transaction() : base()
+    {
+
+    }
 }

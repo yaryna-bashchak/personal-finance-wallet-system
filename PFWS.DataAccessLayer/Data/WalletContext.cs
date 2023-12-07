@@ -5,7 +5,7 @@ using PFWS.DataAccessLayer.Models;
 
 namespace PFWS.DataAccessLayer.Data;
 
-public class WalletContext : IdentityDbContext<User>
+public class WalletContext : IdentityDbContext<User, IdentityRole<int>, int>
 {
     public WalletContext(DbContextOptions options) : base(options)
     {

@@ -28,7 +28,7 @@ public static class DependencyConfiguration
             opt.Password.RequireNonAlphanumeric = false;
             opt.User.RequireUniqueEmail = false;
         })
-            .AddRoles<IdentityRole>()
+            .AddRoles<IdentityRole<int>>()
             .AddEntityFrameworkStores<WalletContext>();
 
         return services;
