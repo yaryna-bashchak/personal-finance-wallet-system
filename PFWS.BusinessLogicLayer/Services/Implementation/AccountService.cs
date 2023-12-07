@@ -17,11 +17,7 @@ public class AccountService : IAccountService
 
     public async Task AddAccount(AddAccountDto newAccount, string username)
     {
-        var user = await _userRepository.FindByName(username);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
+        var user = await GetUserByUsername(username);
 
         var account = new Account
         {
@@ -35,46 +31,65 @@ public class AccountService : IAccountService
 
     public async Task DeleteAccount(int id, string username)
     {
-        var user = await _userRepository.FindByName(username);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-
-        var account = await _repositoryBase.GetItem(id);
-        if (account == null)
-        {
-            throw new Exception("Account not found");
-        }
-
-        if (account.UserId != user.Id)
-        {
-            throw new Exception("Unauthorized access to the account");
-        }
+        var user = await GetUserByUsername(username);
+        var account = await GetAccountForUser(id, user.Id);
 
         await _repositoryBase.DeleteItem(account);
     }
 
     public async Task<GetAccountDto> GetAccountById(int id, string username)
     {
+        var user = await GetUserByUsername(username);
+        var account = await GetAccountForUser(id, user.Id);
+
+        var accountDto = MapToAccountDto(account);
+
+        return accountDto;
+    }
+
+    public async Task<List<GetAccountDto>> GetUserAccounts(string username)
+    {
+        var user = await GetUserByUsername(username);
+        var allAccounts = await _repositoryBase.GetAllItems();
+        var userAccounts = allAccounts.Where(account => account.UserId == user.Id);
+
+        var userAccountsDto = userAccounts.Select(MapToAccountDto).ToList();
+
+        return userAccountsDto;
+    }
+
+    public async Task UpdateAccount(int id, UpdateAccountDto updatedAccount, string username)
+    {
+        var user = await GetUserByUsername(username);
+        var account = await GetAccountForUser(id, user.Id);
+
+        account.Name = updatedAccount.Name;
+
+        await _repositoryBase.UpdateItem(id, account);
+    }
+
+    private async Task<User> GetUserByUsername(string username)
+    {
         var user = await _userRepository.FindByName(username);
         if (user == null)
-        {
             throw new Exception("User not found");
-        }
+        return user;
+    }
 
+    private async Task<Account> GetAccountForUser(int id, string userId)
+    {
         var account = await _repositoryBase.GetItem(id);
         if (account == null)
-        {
             throw new Exception("Account not found");
-        }
-
-        if (account.UserId != user.Id)
-        {
+        if (account.UserId != userId)
             throw new Exception("Unauthorized access to the account");
-        }
 
-        var accountDto = new GetAccountDto
+        return account;
+    }
+
+    private GetAccountDto MapToAccountDto(Account account)
+    {
+        return new GetAccountDto
         {
             Id = account.Id,
             Name = account.Name,
@@ -82,56 +97,5 @@ public class AccountService : IAccountService
             CreatedAt = account.CreatedAt,
             UpdatedAt = account.UpdatedAt,
         };
-
-        return accountDto;
-    }
-
-    public async Task<List<GetAccountDto>> GetUserAccounts(string username)
-    {
-        var user = await _userRepository.FindByName(username);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-
-        var allAccounts = await _repositoryBase.GetAllItems();
-        var userAccounts = allAccounts.Where(account => account.UserId == user.Id);
-
-        var userAccountsDto = userAccounts.Select(account =>
-            new GetAccountDto
-            {
-                Id = account.Id,
-                Name = account.Name,
-                Balance = account.Balance,
-                CreatedAt = account.CreatedAt,
-                UpdatedAt = account.UpdatedAt,
-            }
-        ).ToList();
-
-        return userAccountsDto;
-    }
-
-    public async Task UpdateAccount(int id, UpdateAccountDto updatedAccount, string username)
-    {
-        var user = await _userRepository.FindByName(username);
-        if (user == null)
-        {
-            throw new Exception("User not found");
-        }
-
-        var account = await _repositoryBase.GetItem(id);
-        if (account == null)
-        {
-            throw new Exception("Account not found");
-        }
-
-        if (account.UserId != user.Id)
-        {
-            throw new Exception("Unauthorized access to the account");
-        }
-
-        account.Name = updatedAccount.Name;
-
-        await _repositoryBase.UpdateItem(id, account);
     }
 }
