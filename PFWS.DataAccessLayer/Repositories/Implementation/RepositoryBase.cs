@@ -44,21 +44,16 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : EntityBase
             throw new KeyNotFoundException("Item not found.");
         }
 
+        updatedItem.UpdatedAt = DateTime.Now;
         _context.Entry(item).CurrentValues.SetValues(updatedItem);
+        _context.Entry(item).Property("CreatedAt").IsModified = false;
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteItem(int id)
+    public async Task DeleteItem(T item)
     {
         try
         {
-            var item = await _context.Set<T>().FirstOrDefaultAsync(s => s.Id == id);
-
-            if (item == null)
-            {
-                throw new KeyNotFoundException($"Item with ID {id} not found.");
-            }
-
             _context.Set<T>().Remove(item);
             await _context.SaveChangesAsync();
         }

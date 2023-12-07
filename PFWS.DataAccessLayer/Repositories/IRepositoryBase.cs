@@ -6,5 +6,5 @@ public interface IRepositoryBase<T>
     public Task<T> GetItem(int id);
     public Task AddItem(T newItem);
     public Task UpdateItem(int id, T updatedItem);
-    public Task DeleteItem(int id);
+    public Task DeleteItem(T item);
 }
