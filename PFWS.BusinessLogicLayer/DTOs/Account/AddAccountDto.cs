@@ -1,6 +1,6 @@
 namespace PFWS.BusinessLogicLayer.DTOs.Account;
 
-public class AddAccount
+public class AddAccountDto
 {
     public int UserId { get; set; }
     public string Name { get; set; }
