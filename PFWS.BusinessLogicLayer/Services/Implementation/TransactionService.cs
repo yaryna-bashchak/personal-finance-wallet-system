@@ -24,23 +24,6 @@ public class TransactionService : ITransactionService
     {
         await ValidateUserAccountAccess(accountId, username);
 
-        // var transactions = await _repositoryBase.FindByCondition(transaction => transaction.FromAccountId == accountId || transaction.ToAccountId == accountId);
-
-        // var expenseCategoryIds = transactions.Where(t => t.ExpenseCategoryId.HasValue).Select(t => t.ExpenseCategoryId.Value).Distinct();
-        // var incomeCategoryIds = transactions.Where(t => t.IncomeCategoryId.HasValue).Select(t => t.IncomeCategoryId.Value).Distinct();
-
-        // var categories = await _categoryRepository.FindByCondition(c => expenseCategoryIds.Contains(c.Id) || incomeCategoryIds.Contains(c.Id));
-
-        // var categories = await _categoryRepository.GetAllItems();
-
-        // var transactionDtos = transactions.Select(transaction =>
-        // {
-        //     var dto = MapToTransactionDto(transaction);
-        //     dto.ExpenseCategory = categories.FirstOrDefault(c => c.Id == transaction.ExpenseCategoryId)?.Name;
-        //     dto.IncomeCategory = categories.FirstOrDefault(c => c.Id == transaction.IncomeCategoryId)?.Name;
-        //     return dto;
-        // }).ToList();
-        // return transactions.Select(MapToTransactionDto).ToList();
         var transactions = await _repositoryBase.FindByCondition(t => t.FromAccountId == accountId || t.ToAccountId == accountId);
         var categoryMap = await FetchCategoriesForTransactions(transactions);
 
@@ -66,7 +49,7 @@ public class TransactionService : ITransactionService
             await ValidateUserAccountAccess(newTransaction.ToAccountId.Value, username);
         }
 
-        await ValidateNewTransactionData(newTransaction);
+        await ValidateTransactionData(newTransaction, newTransaction.FromAccountId, newTransaction.ToAccountId, newTransaction.Amount);
 
         try
         {
@@ -114,7 +97,11 @@ public class TransactionService : ITransactionService
             await ValidateUserAccountAccess(updatedTransaction.ToAccountId.Value, username);
         }
 
-        await ValidateUpdatedTransactionData(updatedTransaction, originalTransaction);
+        int? fromAccountId = updatedTransaction.FromAccountId.HasValue ? updatedTransaction.FromAccountId.Value : originalTransaction.FromAccountId.Value;
+        int? toAccountId = updatedTransaction.ToAccountId.HasValue ? updatedTransaction.ToAccountId.Value : originalTransaction.ToAccountId.Value;
+        decimal amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
+
+        await ValidateTransactionData(updatedTransaction, fromAccountId, toAccountId, amount);
 
         try
         {
@@ -128,10 +115,6 @@ public class TransactionService : ITransactionService
             {
                 await UpdateAccountBalance(originalTransaction.ToAccountId.Value, -originalTransaction.Amount);
             }
-
-            int? fromAccountId = updatedTransaction.FromAccountId.HasValue ? updatedTransaction.FromAccountId.Value : originalTransaction.FromAccountId.Value;
-            int? toAccountId = updatedTransaction.ToAccountId.HasValue ? updatedTransaction.ToAccountId.Value : originalTransaction.ToAccountId.Value;
-            decimal amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
 
             originalTransaction.FromAccountId = fromAccountId;
             originalTransaction.ToAccountId = updatedTransaction.ToAccountId ?? originalTransaction.ToAccountId;
@@ -224,42 +207,28 @@ public class TransactionService : ITransactionService
         return categories.ToDictionary(c => c.Id, MapToCategoryDto);
     }
 
-    private async Task ValidateNewTransactionData(AddTransactionDto newTransaction)
+    private async Task ValidateTransactionData(AddTransactionDto newTransaction, int? fromAccountId, int? toAccountId, decimal amount)
     {
-        if (!newTransaction.FromAccountId.HasValue && !newTransaction.ToAccountId.HasValue)
+        if (!fromAccountId.HasValue && !toAccountId.HasValue)
             throw new Exception("There must be at least one account ID in transaction (FromAccountId or ToAccountId)");
 
-        if (newTransaction.Amount <= 0)
+        if (amount <= 0)
             throw new Exception("Amount must be greater than 0");
 
-        if (newTransaction.FromAccountId.HasValue)
+        if (fromAccountId.HasValue)
             if (!newTransaction.ExpenseCategoryId.HasValue)
                 throw new Exception("ExpenseCategoryId must be specified if there is FromAccountId");
 
-        if (newTransaction.ToAccountId.HasValue)
+        if (toAccountId.HasValue)
             if (!newTransaction.IncomeCategoryId.HasValue)
                 throw new Exception("IncomeCategoryId must be specified if there is ToAccountId");
 
         await ValidateCategoriesData(newTransaction);
 
-        if (newTransaction.FromAccountId == newTransaction.ToAccountId)
-            throw new Exception("FromAccountId and ToAccountId can not be the same");
-    }
-
-    private async Task ValidateUpdatedTransactionData(UpdateTransactionDto updatedTransaction, Transaction originalTransaction)
-    {
-        decimal amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
-
-        if (amount <= 0)
-            throw new Exception("Amount must be greater than 0");
-
-        await ValidateCategoriesData(updatedTransaction);
-
-        int fromAccountId = updatedTransaction.FromAccountId.HasValue ? updatedTransaction.FromAccountId.Value : originalTransaction.FromAccountId.Value;
-        int toAccountId = updatedTransaction.ToAccountId.HasValue ? updatedTransaction.ToAccountId.Value : originalTransaction.ToAccountId.Value;
         if (fromAccountId == toAccountId)
             throw new Exception("FromAccountId and ToAccountId can not be the same");
     }
+
     private async Task ValidateCategoriesData(AddTransactionDto newTransaction)
     {
         if (newTransaction.ExpenseCategoryId.HasValue)
