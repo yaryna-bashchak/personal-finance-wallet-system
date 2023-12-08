@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PFWS.DataAccessLayer.Data;
@@ -62,5 +63,10 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
         {
             throw;
         }
+    }
+
+    public async Task<List<T>> FindByCondition(Expression<Func<T, bool>> expression)
+    {
+        return await _context.Set<T>().Where(expression).AsNoTracking().ToListAsync();
     }
 }

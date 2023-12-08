@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace PFWS.DataAccessLayer.Repositories;
 
 public interface IRepositoryBase<T>
@@ -7,4 +9,5 @@ public interface IRepositoryBase<T>
     public Task AddItem(T newItem);
     public Task UpdateItem(int id, T updatedItem);
     public Task DeleteItem(T item);
+    public Task<List<T>> FindByCondition(Expression<Func<T, bool>> expression);
 }
