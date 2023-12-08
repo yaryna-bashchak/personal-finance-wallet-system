@@ -66,20 +66,21 @@ public class TransactionService : ITransactionService
             await ValidateUserAccountAccess(newTransaction.ToAccountId.Value, username);
         }
 
-        ValidateTransactionData(newTransaction);
+        await ValidateNewTransactionData(newTransaction);
 
-        var transaction = new Transaction
+        try
         {
-            FromAccountId = newTransaction.FromAccountId,
-            ToAccountId = newTransaction.ToAccountId,
-            ExpenseCategoryId = newTransaction.ExpenseCategoryId,
-            IncomeCategoryId = newTransaction.IncomeCategoryId,
-            Amount = newTransaction.Amount,
-        };
+            await _repositoryBase.BeginTransactionAsync();
 
-        await _repositoryBase.AddItem(transaction);
+            var transaction = new Transaction
+            {
+                FromAccountId = newTransaction.FromAccountId,
+                ToAccountId = newTransaction.ToAccountId,
+                ExpenseCategoryId = newTransaction.ExpenseCategoryId,
+                IncomeCategoryId = newTransaction.IncomeCategoryId,
+                Amount = newTransaction.Amount,
+            };
 
-        {
             await _repositoryBase.AddItem(transaction);
 
             if (newTransaction.FromAccountId.HasValue)
@@ -113,10 +114,12 @@ public class TransactionService : ITransactionService
             await ValidateUserAccountAccess(updatedTransaction.ToAccountId.Value, username);
         }
 
-        ValidateTransactionData(updatedTransaction);
+        await ValidateUpdatedTransactionData(updatedTransaction, originalTransaction);
 
-        using (var transactionScope = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
+        try
         {
+            await _repositoryBase.BeginTransactionAsync();
+
             if (originalTransaction.FromAccountId.HasValue)
             {
                 await UpdateAccountBalance(originalTransaction.FromAccountId.Value, originalTransaction.Amount);
@@ -126,24 +129,33 @@ public class TransactionService : ITransactionService
                 await UpdateAccountBalance(originalTransaction.ToAccountId.Value, -originalTransaction.Amount);
             }
 
-            originalTransaction.FromAccountId = updatedTransaction.FromAccountId;
-            originalTransaction.ToAccountId = updatedTransaction.ToAccountId;
-            originalTransaction.ExpenseCategoryId = updatedTransaction.ExpenseCategoryId;
-            originalTransaction.IncomeCategoryId = updatedTransaction.IncomeCategoryId;
-            originalTransaction.Amount = updatedTransaction.Amount;
+            int? fromAccountId = updatedTransaction.FromAccountId.HasValue ? updatedTransaction.FromAccountId.Value : originalTransaction.FromAccountId.Value;
+            int? toAccountId = updatedTransaction.ToAccountId.HasValue ? updatedTransaction.ToAccountId.Value : originalTransaction.ToAccountId.Value;
+            decimal amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
+
+            originalTransaction.FromAccountId = fromAccountId;
+            originalTransaction.ToAccountId = updatedTransaction.ToAccountId ?? originalTransaction.ToAccountId;
+            originalTransaction.ExpenseCategoryId = updatedTransaction.ExpenseCategoryId ?? originalTransaction.ExpenseCategoryId;
+            originalTransaction.IncomeCategoryId = updatedTransaction.IncomeCategoryId ?? originalTransaction.IncomeCategoryId;
+            originalTransaction.Amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
 
             await _repositoryBase.UpdateItem(id, originalTransaction);
 
-            if (updatedTransaction.FromAccountId.HasValue)
+            if (fromAccountId.HasValue)
             {
-                await UpdateAccountBalance(updatedTransaction.FromAccountId.Value, -updatedTransaction.Amount);
+                await UpdateAccountBalance(fromAccountId.Value, -amount);
             }
-            if (updatedTransaction.ToAccountId.HasValue)
+            if (toAccountId.HasValue)
             {
-                await UpdateAccountBalance(updatedTransaction.ToAccountId.Value, updatedTransaction.Amount);
+                await UpdateAccountBalance(toAccountId.Value, amount);
             }
 
-            transactionScope.Complete();
+            await _repositoryBase.CommitAsync();
+        }
+        catch (Exception)
+        {
+            _repositoryBase.Rollback();
+            throw;
         }
     }
 
@@ -223,33 +235,54 @@ public class TransactionService : ITransactionService
         if (newTransaction.FromAccountId.HasValue)
             if (!newTransaction.ExpenseCategoryId.HasValue)
                 throw new Exception("ExpenseCategoryId must be specified if there is FromAccountId");
-            else if (newTransaction.ExpenseCategoryId.HasValue)
-            {
-                var category = await _categoryRepository.GetItem(newTransaction.ExpenseCategoryId.Value);
-
-                if (category == null)
-                    throw new Exception("Category not found");
-
-                if (category.Type != "expense")
-                    throw new Exception("ExpenseCategoryId must be id of category with type 'expense'");
-            }
 
         if (newTransaction.ToAccountId.HasValue)
             if (!newTransaction.IncomeCategoryId.HasValue)
                 throw new Exception("IncomeCategoryId must be specified if there is ToAccountId");
-            else if (newTransaction.IncomeCategoryId.HasValue)
-            {
-                var category = await _categoryRepository.GetItem(newTransaction.IncomeCategoryId.Value);
 
-                if (category == null)
-                    throw new Exception("Category not found");
-
-                if (category.Type != "income")
-                    throw new Exception("IncomeCategoryId must be id of category with type 'income'");
-            }
+        await ValidateCategoriesData(newTransaction);
 
         if (newTransaction.FromAccountId == newTransaction.ToAccountId)
             throw new Exception("FromAccountId and ToAccountId can not be the same");
+    }
+
+    private async Task ValidateUpdatedTransactionData(UpdateTransactionDto updatedTransaction, Transaction originalTransaction)
+    {
+        decimal amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
+
+        if (amount <= 0)
+            throw new Exception("Amount must be greater than 0");
+
+        await ValidateCategoriesData(updatedTransaction);
+
+        int fromAccountId = updatedTransaction.FromAccountId.HasValue ? updatedTransaction.FromAccountId.Value : originalTransaction.FromAccountId.Value;
+        int toAccountId = updatedTransaction.ToAccountId.HasValue ? updatedTransaction.ToAccountId.Value : originalTransaction.ToAccountId.Value;
+        if (fromAccountId == toAccountId)
+            throw new Exception("FromAccountId and ToAccountId can not be the same");
+    }
+    private async Task ValidateCategoriesData(AddTransactionDto newTransaction)
+    {
+        if (newTransaction.ExpenseCategoryId.HasValue)
+        {
+            var category = await _categoryRepository.GetItem(newTransaction.ExpenseCategoryId.Value);
+
+            if (category == null)
+                throw new Exception("Category not found");
+
+            if (category.Type != "expense")
+                throw new Exception("ExpenseCategoryId must be id of category with type 'expense'");
+        }
+
+        if (newTransaction.IncomeCategoryId.HasValue)
+        {
+            var category = await _categoryRepository.GetItem(newTransaction.IncomeCategoryId.Value);
+
+            if (category == null)
+                throw new Exception("Category not found");
+
+            if (category.Type != "income")
+                throw new Exception("IncomeCategoryId must be id of category with type 'income'");
+        }
     }
 
     private async Task ValidateUserAccountAccess(int? accountId, string username)
