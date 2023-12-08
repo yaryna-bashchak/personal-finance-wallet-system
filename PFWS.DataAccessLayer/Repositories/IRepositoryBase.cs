@@ -10,4 +10,8 @@ public interface IRepositoryBase<T>
     public Task UpdateItem(int id, T updatedItem);
     public Task DeleteItem(T item);
     public Task<List<T>> FindByCondition(Expression<Func<T, bool>> expression);
+    public Task BeginTransactionAsync();
+    public Task CommitAsync();
+    public void Rollback();
+    public void Dispose();
 }

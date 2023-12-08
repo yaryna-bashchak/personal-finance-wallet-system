@@ -79,7 +79,6 @@ public class TransactionService : ITransactionService
 
         await _repositoryBase.AddItem(transaction);
 
-        using (var transactionScope = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
         {
             await _repositoryBase.AddItem(transaction);
 
@@ -92,7 +91,12 @@ public class TransactionService : ITransactionService
                 await UpdateAccountBalance(newTransaction.ToAccountId.Value, newTransaction.Amount);
             }
 
-            transactionScope.Complete();
+            await _repositoryBase.CommitAsync();
+        }
+        catch (Exception)
+        {
+            _repositoryBase.Rollback();
+            throw;
         }
     }
 
@@ -147,8 +151,10 @@ public class TransactionService : ITransactionService
     {
         var transaction = await GetTransactionForUser(id, username);
 
-        using (var transactionScope = new System.Transactions.TransactionScope(System.Transactions.TransactionScopeAsyncFlowOption.Enabled))
+        try
         {
+            await _repositoryBase.BeginTransactionAsync();
+
             if (transaction.FromAccountId.HasValue)
             {
                 await UpdateAccountBalance(transaction.FromAccountId.Value, transaction.Amount);
@@ -160,7 +166,12 @@ public class TransactionService : ITransactionService
 
             await _repositoryBase.DeleteItem(transaction);
 
-            transactionScope.Complete();
+            await _repositoryBase.CommitAsync();
+        }
+        catch (Exception)
+        {
+            _repositoryBase.Rollback();
+            throw;
         }
     }
 
@@ -201,7 +212,7 @@ public class TransactionService : ITransactionService
         return categories.ToDictionary(c => c.Id, MapToCategoryDto);
     }
 
-    private async void ValidateTransactionData(AddTransactionDto newTransaction)
+    private async Task ValidateNewTransactionData(AddTransactionDto newTransaction)
     {
         if (!newTransaction.FromAccountId.HasValue && !newTransaction.ToAccountId.HasValue)
             throw new Exception("There must be at least one account ID in transaction (FromAccountId or ToAccountId)");
