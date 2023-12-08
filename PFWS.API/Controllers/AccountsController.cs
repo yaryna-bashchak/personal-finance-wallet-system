@@ -31,7 +31,7 @@ public class AccountsController : BaseApiController
     }
 
     [HttpGet("user")]
-    public async Task<ActionResult<GetAccountDto>> GetUserAccounts()
+    public async Task<ActionResult<List<GetAccountDto>>> GetUserAccounts()
     {
         try
         {
