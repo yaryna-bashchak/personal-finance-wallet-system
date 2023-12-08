@@ -92,6 +92,7 @@ public class AccountService : IAccountService
         return new GetAccountDto
         {
             Id = account.Id,
+            UserId = account.UserId,
             Name = account.Name,
             Balance = account.Balance,
             CreatedAt = account.CreatedAt,
