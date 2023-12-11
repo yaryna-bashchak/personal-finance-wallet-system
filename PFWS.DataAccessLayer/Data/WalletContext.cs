@@ -11,6 +11,10 @@ public class WalletContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
     }
 
+    public WalletContext() : base(new DbContextOptions<WalletContext>())
+    {
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
