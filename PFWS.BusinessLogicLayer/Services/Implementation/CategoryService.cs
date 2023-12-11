@@ -16,7 +16,7 @@ public class CategoryService : ICategoryService
 
     public async Task AddCategory(AddCategoryDto newCategory, string username)
     {
-        var user = await GetUserByUsername(username);
+        await GetUserByUsername(username);
 
         if (!(newCategory.Type == "income" || newCategory.Type == "expense"))
             throw new Exception("Type should be only either 'income' or 'expense'");
@@ -32,7 +32,7 @@ public class CategoryService : ICategoryService
 
     public async Task DeleteCategory(int id, string username)
     {
-        var user = await GetUserByUsername(username);
+        await GetUserByUsername(username);
         var category = await GetCategory(id);
 
         await _repositoryBase.DeleteItem(category);
@@ -50,7 +50,7 @@ public class CategoryService : ICategoryService
 
     public async Task<GetCategoryDto> GetCategoryById(int id, string username)
     {
-        var user = await GetUserByUsername(username);
+        await GetUserByUsername(username);
         var category = await GetCategory(id);
 
         var categoryDto = MapToCategoryDto(category);
@@ -60,7 +60,7 @@ public class CategoryService : ICategoryService
 
     public async Task UpdateCategory(int id, UpdateCategoryDto updatedCategory, string username)
     {
-        var user = await GetUserByUsername(username);
+        await GetUserByUsername(username);
         var category = await GetCategory(id);
 
         category.Name = updatedCategory.Name;
