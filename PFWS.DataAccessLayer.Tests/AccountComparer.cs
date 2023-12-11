@@ -19,4 +19,17 @@ public class AccountComparer : IComparer
         }
         return 0;
     }
+
+    public bool Equals(Account x, Account y)
+    {
+        if (x == null || y == null)
+        {
+            return false;
+        }
+
+        return x.Id == y.Id &&
+               x.Name == y.Name &&
+               x.Balance == y.Balance &&
+               x.UserId == y.UserId;
+    }
 }

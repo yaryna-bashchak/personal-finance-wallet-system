@@ -19,17 +19,18 @@ public class RepositoryBaseTests
         var queryableData = data.AsQueryable();
 
         mockSet = new Mock<DbSet<Account>>();
-        mockSet.As<IQueryable<Account>>().Setup(m => m.Provider).Returns(queryableData.Provider);
+        mockSet.As<IQueryable<Account>>().Setup(m => m.Provider).Returns(new TestAsyncQueryProvider<Account>(queryableData.Provider));
         mockSet.As<IQueryable<Account>>().Setup(m => m.Expression).Returns(queryableData.Expression);
         mockSet.As<IQueryable<Account>>().Setup(m => m.ElementType).Returns(queryableData.ElementType);
         mockSet.As<IQueryable<Account>>().Setup(m => m.GetEnumerator()).Returns(queryableData.GetEnumerator);
 
         mockSet.As<IAsyncEnumerable<Account>>().Setup(d => d.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
-               .Returns(new AsyncEnumerator<Account>(data.GetEnumerator()));
+            .Returns(new TestAsyncEnumerator<Account>(data.GetEnumerator()));
 
         mockContext = new Mock<WalletContext>();
         mockContext.Setup(c => c.Set<Account>()).Returns(mockSet.Object);
-
+        // mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        
         repository = new RepositoryBase<Account>(mockContext.Object);
     }
 
@@ -51,17 +52,17 @@ public class RepositoryBaseTests
         CollectionAssert.AreEqual(expectedAccounts, result, new AccountComparer());
     }
 
-    // [Test]
-    // public async Task GetItemAsync_ReturnsCorrectItem()
-    // {
-    //     var expectedAccount = new Account { Id = 1, Name = "Account 1", Balance = 1000, UserId = 1 };
-    //     mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
-    //            .ReturnsAsync(expectedAccount);
+    [Test]
+    public async Task GetItemAsync_ReturnsCorrectItem()
+    {
+        var expectedAccount = new Account { Id = 1, Name = "Account 1", Balance = 1000, UserId = 1 };
+        mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
+               .ReturnsAsync(expectedAccount);
 
-    //     var result = await repository.GetItemAsync(1);
+        var result = await repository.GetItemAsync(1);
 
-    //     Assert.IsNotNull(result);
-    //     var comparer = new AccountComparer();
-    //     Assert.IsTrue(comparer.Equals(expectedAccount, result));
-    // }
+        Assert.IsNotNull(result);
+        var comparer = new AccountComparer();
+        Assert.IsTrue(comparer.Equals(expectedAccount, result));
+    }
 }
