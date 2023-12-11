@@ -28,15 +28,15 @@ public class AuthService : IAuthService
             UserName = registerDto.Username
         };
 
-        var result = await _userRepository.Create(user, registerDto.Password);
+        var result = await _userRepository.CreateAsync(user, registerDto.Password);
         return result;
     }
 
     public async Task<LoginedUserDto> Login(LoginDto loginDto)
     {
-        var user = await _userRepository.FindByName(loginDto.Username);
+        var user = await _userRepository.FindByNameAsync(loginDto.Username);
 
-        if (user == null || !await _userRepository.CheckPassword(user, loginDto.Password))
+        if (user == null || !await _userRepository.CheckPasswordAsync(user, loginDto.Password))
             throw new Exception("Login failed");
 
         return new LoginedUserDto
@@ -49,7 +49,7 @@ public class AuthService : IAuthService
 
     public async Task<LoginedUserDto> GetCurrentUser(string username)
     {
-        var user = await _userRepository.FindByName(username);
+        var user = await _userRepository.FindByNameAsync(username);
         if (user == null)
             throw new Exception("Current user is invalid");
 

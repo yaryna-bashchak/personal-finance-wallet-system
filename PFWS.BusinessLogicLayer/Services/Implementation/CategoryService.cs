@@ -27,7 +27,7 @@ public class CategoryService : ICategoryService
             Type = newCategory.Type,
         };
 
-        await _repositoryBase.AddItem(category);
+        await _repositoryBase.AddItemAsync(category);
     }
 
     public async Task DeleteCategory(int id, string username)
@@ -35,13 +35,13 @@ public class CategoryService : ICategoryService
         await GetUserByUsername(username);
         var category = await GetCategory(id);
 
-        await _repositoryBase.DeleteItem(category);
+        await _repositoryBase.DeleteItemAsync(category);
     }
 
     public async Task<List<GetCategoryDto>> GetCategories(string username)
     {
         var user = await GetUserByUsername(username);
-        var categories = await _repositoryBase.GetAllItems();
+        var categories = await _repositoryBase.GetAllItemsAsync();
 
         var categoriesDto = categories.Select(MapToCategoryDto).ToList();
 
@@ -65,19 +65,19 @@ public class CategoryService : ICategoryService
 
         category.Name = updatedCategory.Name;
 
-        await _repositoryBase.UpdateItem(id, category);
+        await _repositoryBase.UpdateItemAsync(id, category);
     }
 
     private async Task<User> GetUserByUsername(string username)
     {
-        var user = await _userRepository.FindByName(username);
+        var user = await _userRepository.FindByNameAsync(username);
         if (user == null)
             throw new Exception("User not found");
         return user;
     }
     private async Task<Category> GetCategory(int id)
     {
-        var category = await _repositoryBase.GetItem(id);
+        var category = await _repositoryBase.GetItemAsync(id);
         if (category == null)
             throw new Exception("Category not found");
 

@@ -17,7 +17,7 @@ public class UserService : IUserService
 
     public async Task<GetUserDto> GetUserById(int id)
     {
-        var user = await _repositoryBase.GetItem(id);
+        var user = await _repositoryBase.GetItemAsync(id);
         if (user == null)
             throw new Exception("User not found");
 
@@ -26,7 +26,7 @@ public class UserService : IUserService
 
     public async Task<List<GetUserDto>> GetUsers()
     {
-        var allUsers = await _repositoryBase.GetAllItems();
+        var allUsers = await _repositoryBase.GetAllItemsAsync();
         return allUsers.Select(MapToUserDto).ToList();
     }
 
@@ -36,19 +36,19 @@ public class UserService : IUserService
 
         user.UserName = updatedUser.Username;
 
-        await _repositoryBase.UpdateItem(user.Id, user);
+        await _repositoryBase.UpdateItemAsync(user.Id, user);
     }
 
     public async Task DeleteUser(string username)
     {
         var user = await GetUserByUsername(username);
 
-        await _repositoryBase.DeleteItem(user);
+        await _repositoryBase.DeleteItemAsync(user);
     }
 
     private async Task<User> GetUserByUsername(string username)
     {
-        var user = await _userRepository.FindByName(username);
+        var user = await _userRepository.FindByNameAsync(username);
         if (user == null)
             throw new Exception("User not found");
         if (user.UserName != username)

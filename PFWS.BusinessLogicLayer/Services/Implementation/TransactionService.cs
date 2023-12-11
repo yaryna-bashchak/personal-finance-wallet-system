@@ -24,7 +24,7 @@ public class TransactionService : ITransactionService
     {
         await ValidateUserAccountAccess(accountId, username);
 
-        var transactions = await _repositoryBase.FindByCondition(t => t.FromAccountId == accountId || t.ToAccountId == accountId);
+        var transactions = await _repositoryBase.FindByConditionAsync(t => t.FromAccountId == accountId || t.ToAccountId == accountId);
         var categoryMap = await FetchCategoriesForTransactions(transactions);
 
         return transactions.Select(t => MapToTransactionDto(t, categoryMap)).ToList();
@@ -64,7 +64,7 @@ public class TransactionService : ITransactionService
                 Amount = newTransaction.Amount,
             };
 
-            await _repositoryBase.AddItem(transaction);
+            await _repositoryBase.AddItemAsync(transaction);
 
             if (newTransaction.FromAccountId.HasValue)
             {
@@ -122,7 +122,7 @@ public class TransactionService : ITransactionService
             originalTransaction.IncomeCategoryId = updatedTransaction.IncomeCategoryId ?? originalTransaction.IncomeCategoryId;
             originalTransaction.Amount = updatedTransaction.Amount == 0 ? originalTransaction.Amount : updatedTransaction.Amount;
 
-            await _repositoryBase.UpdateItem(id, originalTransaction);
+            await _repositoryBase.UpdateItemAsync(id, originalTransaction);
 
             if (fromAccountId.HasValue)
             {
@@ -159,7 +159,7 @@ public class TransactionService : ITransactionService
                 await UpdateAccountBalance(transaction.ToAccountId.Value, -transaction.Amount);
             }
 
-            await _repositoryBase.DeleteItem(transaction);
+            await _repositoryBase.DeleteItemAsync(transaction);
 
             await _repositoryBase.CommitAsync();
         }
@@ -173,18 +173,18 @@ public class TransactionService : ITransactionService
     // private methods
     private async Task UpdateAccountBalance(int accountId, decimal amount)
     {
-        var account = await _accountRepository.GetItem(accountId);
+        var account = await _accountRepository.GetItemAsync(accountId);
         if (account == null)
             throw new Exception("Account not found");
 
         account.Balance += amount;
 
-        await _accountRepository.UpdateItem(accountId, account);
+        await _accountRepository.UpdateItemAsync(accountId, account);
     }
 
     private async Task<Transaction> GetTransactionForUser(int id, string username)
     {
-        var transaction = await _repositoryBase.GetItem(id);
+        var transaction = await _repositoryBase.GetItemAsync(id);
         if (transaction == null)
             throw new Exception("Transaction not found");
 
@@ -202,7 +202,7 @@ public class TransactionService : ITransactionService
             .Where(id => id.HasValue)
             .Select(id => id.Value);
 
-        var categories = await _categoryRepository.FindByCondition(c => categoryIds.Contains(c.Id));
+        var categories = await _categoryRepository.FindByConditionAsync(c => categoryIds.Contains(c.Id));
 
         return categories.ToDictionary(c => c.Id, MapToCategoryDto);
     }
@@ -233,7 +233,7 @@ public class TransactionService : ITransactionService
     {
         if (newTransaction.ExpenseCategoryId.HasValue)
         {
-            var category = await _categoryRepository.GetItem(newTransaction.ExpenseCategoryId.Value);
+            var category = await _categoryRepository.GetItemAsync(newTransaction.ExpenseCategoryId.Value);
 
             if (category == null)
                 throw new Exception("Category not found");
@@ -244,7 +244,7 @@ public class TransactionService : ITransactionService
 
         if (newTransaction.IncomeCategoryId.HasValue)
         {
-            var category = await _categoryRepository.GetItem(newTransaction.IncomeCategoryId.Value);
+            var category = await _categoryRepository.GetItemAsync(newTransaction.IncomeCategoryId.Value);
 
             if (category == null)
                 throw new Exception("Category not found");
@@ -259,7 +259,7 @@ public class TransactionService : ITransactionService
         if (accountId.HasValue)
         {
             var user = await GetUserByUsername(username);
-            var account = await _accountRepository.GetItem(accountId.Value);
+            var account = await _accountRepository.GetItemAsync(accountId.Value);
             if (account == null)
                 throw new Exception("Account not found");
             if (account.UserId != user.Id)
@@ -269,7 +269,7 @@ public class TransactionService : ITransactionService
 
     private async Task<User> GetUserByUsername(string username)
     {
-        var user = await _userRepository.FindByName(username);
+        var user = await _userRepository.FindByNameAsync(username);
         if (user == null)
             throw new Exception("User not found");
         return user;

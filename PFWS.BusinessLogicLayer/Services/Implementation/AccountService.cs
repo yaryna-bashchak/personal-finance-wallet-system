@@ -26,7 +26,7 @@ public class AccountService : IAccountService
             Balance = newAccount.Balance,
         };
 
-        await _repositoryBase.AddItem(account);
+        await _repositoryBase.AddItemAsync(account);
     }
 
     public async Task DeleteAccount(int id, string username)
@@ -34,7 +34,7 @@ public class AccountService : IAccountService
         var user = await GetUserByUsername(username);
         var account = await GetAccountById(id, user.Id);
 
-        await _repositoryBase.DeleteItem(account);
+        await _repositoryBase.DeleteItemAsync(account);
     }
 
     public async Task<GetAccountDto> GetAccountById(int id, string username)
@@ -50,7 +50,7 @@ public class AccountService : IAccountService
     public async Task<List<GetAccountDto>> GetUserAccounts(string username)
     {
         var user = await GetUserByUsername(username);
-        var allAccounts = await _repositoryBase.GetAllItems();
+        var allAccounts = await _repositoryBase.GetAllItemsAsync();
         var userAccounts = allAccounts.Where(account => account.UserId == user.Id);
 
         var userAccountsDto = userAccounts.Select(MapToAccountDto).ToList();
@@ -65,12 +65,12 @@ public class AccountService : IAccountService
 
         account.Name = updatedAccount.Name;
 
-        await _repositoryBase.UpdateItem(id, account);
+        await _repositoryBase.UpdateItemAsync(id, account);
     }
 
     private async Task<User> GetUserByUsername(string username)
     {
-        var user = await _userRepository.FindByName(username);
+        var user = await _userRepository.FindByNameAsync(username);
         if (user == null)
             throw new Exception("User not found");
         return user;
@@ -78,7 +78,7 @@ public class AccountService : IAccountService
 
     private async Task<Account> GetAccountById(int id, int userId)
     {
-        var account = await _repositoryBase.GetItem(id);
+        var account = await _repositoryBase.GetItemAsync(id);
         if (account == null)
             throw new Exception("Account not found");
         if (account.UserId != userId)

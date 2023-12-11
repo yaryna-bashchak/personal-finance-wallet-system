@@ -5,7 +5,7 @@ namespace PFWS.DataAccessLayer.Repositories;
 
 public interface IUserRepository
 {
-    Task<IdentityResult> Create(User user, string password);
-    Task<User> FindByName(string username);
-    Task<bool> CheckPassword(User user, string password);
+    Task<IdentityResult> CreateAsync(User user, string password);
+    Task<User> FindByNameAsync(string username);
+    Task<bool> CheckPasswordAsync(User user, string password);
 }

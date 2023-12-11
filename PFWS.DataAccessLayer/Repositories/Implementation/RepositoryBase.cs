@@ -11,23 +11,23 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
 {
     private readonly WalletContext _context;
     private IDbContextTransaction _currentTransaction;
-    
+
     public RepositoryBase(WalletContext context)
     {
         _context = context;
     }
 
-    public async Task<List<T>> GetAllItems()
+    public async Task<List<T>> GetAllItemsAsync()
     {
         return await _context.Set<T>().ToListAsync();
     }
 
-    public async Task<T> GetItem(int id)
+    public async Task<T> GetItemAsync(int id)
     {
         return await _context.Set<T>().FirstAsync(s => s.Id == id);
     }
 
-    public async Task AddItem(T newItem)
+    public async Task AddItemAsync(T newItem)
     {
         try
         {
@@ -41,7 +41,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
         }
     }
 
-    public async Task UpdateItem(int id, T updatedItem)
+    public async Task UpdateItemAsync(int id, T updatedItem)
     {
         var item = await _context.Set<T>().FirstOrDefaultAsync(s => s.Id == id);
         if (item == null)
@@ -55,7 +55,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteItem(T item)
+    public async Task DeleteItemAsync(T item)
     {
         try
         {
@@ -68,7 +68,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
         }
     }
 
-    public async Task<List<T>> FindByCondition(Expression<Func<T, bool>> expression)
+    public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression)
     {
         return await _context.Set<T>().Where(expression).AsNoTracking().ToListAsync();
     }
