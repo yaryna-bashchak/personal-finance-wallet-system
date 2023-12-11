@@ -25,6 +25,7 @@ public static class DependencyConfiguration
         services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IReportService, ReportService>();
 
         // Identity
         services.AddIdentityCore<User>(opt =>

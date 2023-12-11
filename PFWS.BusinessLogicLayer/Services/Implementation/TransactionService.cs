@@ -9,7 +9,7 @@ public class TransactionService : ITransactionService
 {
     private readonly IRepositoryBase<Transaction> _repositoryBase;
     private readonly IUserRepository _userRepository;
-    public readonly IRepositoryBase<Account> _accountRepository;
+    private readonly IRepositoryBase<Account> _accountRepository;
     private readonly IRepositoryBase<Category> _categoryRepository;
 
     public TransactionService(IRepositoryBase<Transaction> repositoryBase, IUserRepository userRepository, IRepositoryBase<Account> accountRepository, IRepositoryBase<Category> categoryRepository)
