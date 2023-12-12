@@ -196,6 +196,9 @@ public class TransactionService : ITransactionService
 
     private async Task<Dictionary<int, GetCategoryDtoShort>> FetchCategoriesForTransactions(IEnumerable<Transaction> transactions)
     {
+        if (!transactions.Any())
+            return new Dictionary<int, GetCategoryDtoShort>();
+
         var categoryIds = transactions
             .SelectMany(t => new int?[] { t.ExpenseCategoryId, t.IncomeCategoryId })
             .Distinct()
