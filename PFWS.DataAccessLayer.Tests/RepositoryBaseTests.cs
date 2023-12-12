@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+
 namespace PFWS.DataAccessLayer.Tests;
 
 public class RepositoryBaseTests
@@ -29,8 +31,8 @@ public class RepositoryBaseTests
 
         mockContext = new Mock<WalletContext>();
         mockContext.Setup(c => c.Set<Account>()).Returns(mockSet.Object);
-        // mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-        
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
         repository = new RepositoryBase<Account>(mockContext.Object);
     }
 
@@ -64,5 +66,60 @@ public class RepositoryBaseTests
         Assert.IsNotNull(result);
         var comparer = new AccountComparer();
         Assert.IsTrue(comparer.Equals(expectedAccount, result));
+    }
+
+    [Test]
+    public async Task AddItemAsync_AddsNewItem()
+    {
+        var newAccount = new Account { Name = "New Account", Balance = 2000, UserId = 3 };
+        int expectedNewId = 4;
+        mockSet.Setup(m => m.AddAsync(It.IsAny<Account>(), It.IsAny<CancellationToken>()))
+               .Callback((Account account, CancellationToken token) =>
+               {
+                   account.Id = expectedNewId;
+                   mockSet.Object.Add(account);
+               })
+               .Returns(new ValueTask<EntityEntry<Account>>(Task.FromResult((EntityEntry<Account>)null)));
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        await repository.AddItemAsync(newAccount);
+
+        mockSet.Verify(m => m.AddAsync(It.Is<Account>(a => a == newAccount), It.IsAny<CancellationToken>()), Times.Once);
+        mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        Assert.That(newAccount.Id, Is.EqualTo(expectedNewId));
+    }
+
+    [Test]
+    public async Task DeleteItemAsync_RemovesItem()
+    {
+        var accountToDelete = new Account { Id = 2, Name = "Account 2", Balance = 1500, UserId = 1 };
+        var removed = false;
+
+        mockSet.Setup(m => m.Remove(It.IsAny<Account>()))
+               .Callback<Account>(account =>
+               {
+                   if (account == accountToDelete)
+                   {
+                       removed = true;
+                   }
+               });
+
+        await repository.DeleteItemAsync(accountToDelete);
+
+        Assert.IsTrue(removed);
+        mockContext.Verify(m => m.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Test]
+    public void DeleteItemAsync_ThrowsException()
+    {
+        var accountToDelete = new Account { Id = 2, Name = "Account 2", Balance = 1500, UserId = 1 };
+        mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                   .ThrowsAsync(new Exception("Test exception"));
+
+        var exception = Assert.ThrowsAsync<Exception>(async () => await repository.DeleteItemAsync(accountToDelete));
+        Assert.That(exception.Message, Is.EqualTo("Test exception"));
+
+        mockSet.Verify(m => m.Remove(It.Is<Account>(a => a == accountToDelete)), Times.Once);
     }
 }
