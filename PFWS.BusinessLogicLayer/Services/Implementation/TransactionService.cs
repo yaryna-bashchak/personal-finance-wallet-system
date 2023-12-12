@@ -266,7 +266,7 @@ public class TransactionService : ITransactionService
             if (account == null)
                 throw new Exception("Account not found");
             if (account.UserId != user.Id)
-                throw new Exception($"Unauthorized access to the account");
+                throw new Exception("Unauthorized access to the account");
         }
     }
 

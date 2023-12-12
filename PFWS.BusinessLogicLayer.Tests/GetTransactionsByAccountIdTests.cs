@@ -1,12 +1,13 @@
 using System.Linq.Expressions;
 using Moq;
+using PFWS.BusinessLogicLayer.DTOs.Transactions;
 using PFWS.BusinessLogicLayer.Services.Implementation;
 using PFWS.DataAccessLayer.Models;
 using PFWS.DataAccessLayer.Repositories;
 
 namespace PFWS.BusinessLogicLayer.Tests;
 
-public class TransactionServiceTests
+public class GetTransactionsByAccountIdTests
 {
     private Mock<IRepositoryBase<Transaction>> _mockTransactionRepository;
     private Mock<IUserRepository> _mockUserRepository;
@@ -135,56 +136,5 @@ public class TransactionServiceTests
 
         Assert.IsNotNull(result);
         Assert.That(result.Id, Is.EqualTo(transactionId));
-    }
-
-    [Test]
-    public void GetTransactionById_WhenUserNotFound_ThrowsException()
-    {
-        int transactionId = 1;
-        string username = "nonExistentUser";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync((User)null);
-
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionById(transactionId, username));
-    }
-
-    [Test]
-    public void GetTransactionById_WhenTransactionNotFound_ThrowsException()
-    {
-        int transactionId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockTransactionRepository.Setup(repo => repo.GetItemAsync(transactionId)).ReturnsAsync(null as Transaction);
-
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionById(transactionId, username));
-    }
-
-    [Test]
-    public void GetTransactionById_WhenUserNotAuthorized_ThrowsException()
-    {
-        int transactionId = 1;
-        string username = "testUser";
-        var user = new User { Id = 2, UserName = username }; // different user Id
-        var transaction = new Transaction { Id = transactionId, FromAccountId = 1 };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockTransactionRepository.Setup(repo => repo.GetItemAsync(transactionId)).ReturnsAsync(transaction);
-
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionById(transactionId, username));
-    }
-
-    [Test]
-    public void GetTransactionById_WhenRepositoryThrowsException_ThrowsException()
-    {
-        int transactionId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockTransactionRepository.Setup(repo => repo.GetItemAsync(transactionId)).ThrowsAsync(new Exception("Database error"));
-
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionById(transactionId, username));
     }
 }
