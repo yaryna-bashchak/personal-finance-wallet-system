@@ -24,7 +24,7 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
 
     public async Task<T> GetItemAsync(int id)
     {
-        return await _context.Set<T>().FirstAsync(s => s.Id == id);
+        return await _context.Set<T>().FirstOrDefaultAsync(s => s.Id == id);
     }
 
     public async Task AddItemAsync(T newItem)

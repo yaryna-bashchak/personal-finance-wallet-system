@@ -53,7 +53,7 @@ public class AccountsControllerTests
 
         Assert.IsInstanceOf<OkObjectResult>(result.Result);
         var okResult = result.Result as OkObjectResult;
-        Assert.That(okResult.Value, Is.EqualTo(expectedAccounts));
+        Assert.That(okResult?.Value, Is.EqualTo(expectedAccounts));
     }
 
     [Test]
