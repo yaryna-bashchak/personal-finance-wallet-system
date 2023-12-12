@@ -62,9 +62,8 @@ public class AddTransactionTests
     [Test]
     public void AddTransaction_WhenUserUnauthorized_ThrowsException()
     {
+        string username = "nonExistentUser";
         string expectedExceptionMessage = "User not found";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync((User)null);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(defaultNewTransaction, username));
 
@@ -138,11 +137,15 @@ public class AddTransactionTests
     [Test]
     public void AddTransaction_CategoryNotFound_ThrowsException()
     {
+        var newTransaction = new AddTransactionDto
+        {
+            FromAccountId = 1,
+            ExpenseCategoryId = 5,
+            Amount = 100
+        };
         string expectedExceptionMessage = "Category not found";
 
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync((Category)null);
-
-        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(defaultNewTransaction, username));
+        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
         Assert.That(ex.Message, Is.EqualTo(expectedExceptionMessage));
     }
@@ -177,6 +180,17 @@ public class AddTransactionTests
         string expectedExceptionMessage = "FromAccountId and ToAccountId can not be the same";
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
+
+        Assert.That(ex.Message, Is.EqualTo(expectedExceptionMessage));
+    }
+
+    [Test]
+    public void AddTransaction_FailedToCommit_ThrowsException()
+    {
+        string expectedExceptionMessage = "Commit failed";
+        _mockTransactionRepository.Setup(repo => repo.CommitAsync()).ThrowsAsync(new Exception("Commit failed"));
+
+        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(defaultNewTransaction, username));
 
         Assert.That(ex.Message, Is.EqualTo(expectedExceptionMessage));
     }

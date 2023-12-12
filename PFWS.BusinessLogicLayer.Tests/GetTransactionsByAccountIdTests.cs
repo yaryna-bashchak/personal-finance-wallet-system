@@ -14,6 +14,20 @@ public class GetTransactionsByAccountIdTests
     private Mock<IRepositoryBase<Account>> _mockAccountRepository;
     private Mock<IRepositoryBase<Category>> _mockCategoryRepository;
     private TransactionService _transactionService;
+    private string username = "testUser";
+    private User user = new() { Id = 1, UserName = "testUser" };
+    private Account account = new() { Id = 1, UserId = 1 };
+    private Account accountOfDifferentUser = new() { Id = 3, UserId = 2 };
+    private List<Category> defaultCategories = new()
+    {
+        new() { Id = 1, Name = "Food", Type = "expense" },
+        new() { Id = 4, Name = "Salary", Type = "income" },
+    };
+    private List<Transaction> defaultTransactions = new()
+    {
+        new() { Id = 1, FromAccountId = 1, ExpenseCategoryId = 1 },
+        new() { Id = 2, ToAccountId = 1, IncomeCategoryId = 4 },
+    };
 
     [SetUp]
     public void Setup()
@@ -23,51 +37,41 @@ public class GetTransactionsByAccountIdTests
         _mockAccountRepository = new Mock<IRepositoryBase<Account>>();
         _mockCategoryRepository = new Mock<IRepositoryBase<Category>>();
 
+        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
+        _mockAccountRepository.Setup(repo => repo.GetItemAsync(account.Id)).ReturnsAsync(account);
+        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountOfDifferentUser.Id)).ReturnsAsync(accountOfDifferentUser);
+        _mockCategoryRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(defaultCategories);
+        _mockTransactionRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync(defaultTransactions);
+
         _transactionService = new TransactionService(_mockTransactionRepository.Object, _mockUserRepository.Object, _mockAccountRepository.Object, _mockCategoryRepository.Object);
     }
 
     [Test]
     public async Task GetTransactionsByAccountId_WhenUserAndAccountExist_ReturnsTransactions()
     {
-        int accountId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = accountId, UserId = user.Id };
-        var transactions = new List<Transaction> { new Transaction { FromAccountId = accountId } };
-        var categories = new List<Category> { new Category { Id = 1, Name = "Category1" } };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountId)).ReturnsAsync(account);
-        _mockTransactionRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync(transactions);
-        _mockCategoryRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(categories);
-
-        var result = await _transactionService.GetTransactionsByAccountId(accountId, username);
+        var result = await _transactionService.GetTransactionsByAccountId(account.Id, username);
 
         Assert.IsNotNull(result);
         Assert.IsNotEmpty(result);
-        Assert.That(result.Count, Is.EqualTo(transactions.Count));
+        Assert.That(result.Count, Is.EqualTo(defaultTransactions.Count));
+        Assert.That(result[0].Id, Is.EqualTo(1));
+        Assert.That(result[1].Id, Is.EqualTo(2));
+        Assert.That(result[0].ExpenseCategory.Id, Is.EqualTo(defaultTransactions.First(t => t.Id == 1).ExpenseCategoryId));
+        Assert.That(result[1].IncomeCategory.Id, Is.EqualTo(defaultTransactions.First(t => t.Id == 2).IncomeCategoryId));
     }
 
     [Test]
     public void GetTransactionsByAccountId_WhenUserNotFound_ThrowsException()
     {
-        int accountId = 1;
         string username = "nonExistentUser";
 
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync((User)null);
-
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(accountId, username));
+        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(account.Id, username));
     }
 
     [Test]
     public void GetTransactionsByAccountId_WhenAccountNotFound_ThrowsException()
     {
         int accountId = 10;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountId)).ReturnsAsync((Account)null);
 
         Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(accountId, username));
     }
@@ -75,13 +79,7 @@ public class GetTransactionsByAccountIdTests
     [Test]
     public void GetTransactionsByAccountId_WhenUserNotAuthorized_ThrowsException()
     {
-        int accountId = 1;
-        string username = "testUser";
-        var user = new User { Id = 2, UserName = username }; // different user Id
-        var account = new Account { Id = accountId, UserId = 1 };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountId)).ReturnsAsync(account);
+        int accountId = 3; // account of different user
 
         Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(accountId, username));
     }
@@ -89,16 +87,9 @@ public class GetTransactionsByAccountIdTests
     [Test]
     public async Task GetTransactionsByAccountId_WhenNoTransactionsFound_ReturnsEmptyList()
     {
-        int accountId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = accountId, UserId = user.Id };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountId)).ReturnsAsync(account);
         _mockTransactionRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ReturnsAsync(new List<Transaction>());
 
-        var result = await _transactionService.GetTransactionsByAccountId(accountId, username);
+        var result = await _transactionService.GetTransactionsByAccountId(account.Id, username);
 
         Assert.IsNotNull(result);
         Assert.IsEmpty(result);
@@ -107,34 +98,8 @@ public class GetTransactionsByAccountIdTests
     [Test]
     public void GetTransactionsByAccountId_WhenRepositoryThrowsException_ThrowsException()
     {
-        int accountId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
         _mockTransactionRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Transaction, bool>>>())).ThrowsAsync(new Exception("Database error"));
 
-        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(accountId, username));
-    }
-
-    [Test]
-    public async Task GetTransactionById_WhenCalled_ReturnsTransaction()
-    {
-        int transactionId = 1;
-        int accountId = 1;
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = accountId, UserId = user.Id };
-        var transaction = new Transaction { Id = transactionId, FromAccountId = 1 };
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockTransactionRepository.Setup(repo => repo.GetItemAsync(transactionId)).ReturnsAsync(transaction);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(accountId)).ReturnsAsync(account);
-        _mockCategoryRepository.Setup(repo => repo.FindByConditionAsync(It.IsAny<Expression<Func<Category, bool>>>())).ReturnsAsync(new List<Category>());
-
-        var result = await _transactionService.GetTransactionById(transactionId, username);
-
-        Assert.IsNotNull(result);
-        Assert.That(result.Id, Is.EqualTo(transactionId));
+        Assert.ThrowsAsync<Exception>(async () => await _transactionService.GetTransactionsByAccountId(account.Id, username));
     }
 }
