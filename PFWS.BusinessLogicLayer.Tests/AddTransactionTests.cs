@@ -15,9 +15,18 @@ public class AddTransactionTests
     private Mock<IRepositoryBase<Category>> _mockCategoryRepository;
     private TransactionService _transactionService;
     private string username = "testUser";
-    private Account account = new() { Id = 1, UserId = 1 };
-    private Category category = new() { Id = 1, Name = "Food", Type = "expense" };
-
+    private User user = new() { Id = 1, UserName = "testUser" };
+    private Account account1 = new() { Id = 1, UserId = 1 };
+    private Account account2 = new() { Id = 2, UserId = 1 };
+    private Account accountOfDifferentUser = new() { Id = 3, UserId = 2 };
+    private Category expenseCategory = new() { Id = 1, Name = "Food", Type = "expense" };
+    private Category incomeCategory = new() { Id = 4, Name = "Salary", Type = "income" };
+    private AddTransactionDto defaultNewTransaction = new()
+    {
+        FromAccountId = 1,
+        ExpenseCategoryId = 1,
+        Amount = 100
+    };
 
     [SetUp]
     public void Setup()
@@ -27,14 +36,15 @@ public class AddTransactionTests
         _mockAccountRepository = new Mock<IRepositoryBase<Account>>();
         _mockCategoryRepository = new Mock<IRepositoryBase<Category>>();
 
-        
-        var user = new User { Id = 1, UserName = username };
         _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(account);
+        _mockAccountRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(account1);
+        _mockAccountRepository.Setup(repo => repo.GetItemAsync(2)).ReturnsAsync(account2);
+        _mockAccountRepository.Setup(repo => repo.GetItemAsync(3)).ReturnsAsync(accountOfDifferentUser);
+        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(expenseCategory);
+        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(4)).ReturnsAsync(incomeCategory);
         _mockTransactionRepository.Setup(repo => repo.BeginTransactionAsync()).Verifiable();
         _mockTransactionRepository.Setup(repo => repo.AddItemAsync(It.IsAny<Transaction>())).Verifiable();
         _mockTransactionRepository.Setup(repo => repo.CommitAsync()).Verifiable();
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(category);
 
         _transactionService = new TransactionService(_mockTransactionRepository.Object, _mockUserRepository.Object, _mockAccountRepository.Object, _mockCategoryRepository.Object);
     }
@@ -42,25 +52,7 @@ public class AddTransactionTests
     [Test]
     public async Task AddTransaction_WhenValidData_ProceedsSuccessfully()
     {
-        var newTransaction = new AddTransactionDto
-        {
-            FromAccountId = 1,
-            ExpenseCategoryId = 1,
-            Amount = 100
-        };
-        // string username = "testUser";
-        // var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = 1, UserId = 1 };
-        var category = new Category { Id = 1, Name = "Food", Type = "expense" };
-
-        // _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(account);
-        _mockTransactionRepository.Setup(repo => repo.BeginTransactionAsync()).Verifiable();
-        _mockTransactionRepository.Setup(repo => repo.AddItemAsync(It.IsAny<Transaction>())).Verifiable();
-        _mockTransactionRepository.Setup(repo => repo.CommitAsync()).Verifiable();
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(category);
-
-        await _transactionService.AddTransaction(newTransaction, username);
+        await _transactionService.AddTransaction(defaultNewTransaction, username);
 
         _mockTransactionRepository.Verify(repo => repo.BeginTransactionAsync(), Times.Once);
         _mockTransactionRepository.Verify(repo => repo.AddItemAsync(It.IsAny<Transaction>()), Times.Once);
@@ -70,18 +62,11 @@ public class AddTransactionTests
     [Test]
     public void AddTransaction_WhenUserUnauthorized_ThrowsException()
     {
-        var newTransaction = new AddTransactionDto
-        {
-            FromAccountId = 1,
-            ExpenseCategoryId = 1,
-            Amount = 100
-        };
-        string username = "testUser";
         string expectedExceptionMessage = "User not found";
 
         _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync((User)null);
 
-        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
+        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(defaultNewTransaction, username));
 
         Assert.That(ex.Message, Is.EqualTo(expectedExceptionMessage));
     }
@@ -91,17 +76,11 @@ public class AddTransactionTests
     {
         var newTransaction = new AddTransactionDto
         {
-            FromAccountId = 1,
+            FromAccountId = 3,
             ExpenseCategoryId = 1,
             Amount = 100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = 1, UserId = 2 }; // different user
         string expectedExceptionMessage = "Unauthorized access to the account";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(account);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
@@ -116,11 +95,7 @@ public class AddTransactionTests
             ExpenseCategoryId = 1,
             Amount = 100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
         string expectedExceptionMessage = "There must be at least one account ID in transaction (FromAccountId or ToAccountId)";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
@@ -136,13 +111,7 @@ public class AddTransactionTests
             ExpenseCategoryId = 1,
             Amount = -100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = 1, UserId = user.Id };
         string expectedExceptionMessage = "Amount must be greater than 0";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(account);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
@@ -159,15 +128,7 @@ public class AddTransactionTests
             ExpenseCategoryId = 1,
             Amount = 100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account1 = new Account { Id = 1, UserId = user.Id };
-        var account2 = new Account { Id = 2, UserId = user.Id };
         string expectedExceptionMessage = "IncomeCategoryId must be specified if there is ToAccountId";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(account1);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(2)).ReturnsAsync(account2);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
@@ -177,22 +138,11 @@ public class AddTransactionTests
     [Test]
     public void AddTransaction_CategoryNotFound_ThrowsException()
     {
-        var newTransaction = new AddTransactionDto
-        {
-            FromAccountId = 1,
-            ExpenseCategoryId = 1,
-            Amount = 100
-        };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = 1, UserId = user.Id };
         string expectedExceptionMessage = "Category not found";
 
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(account);
         _mockCategoryRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync((Category)null);
 
-        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
+        var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(defaultNewTransaction, username));
 
         Assert.That(ex.Message, Is.EqualTo(expectedExceptionMessage));
     }
@@ -206,15 +156,7 @@ public class AddTransactionTests
             ExpenseCategoryId = 4,
             Amount = 100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account = new Account { Id = 1, UserId = user.Id };
-        var category = new Category { Id = 4, Name = "Salary", Type = "income" };
         string expectedExceptionMessage = "ExpenseCategoryId must be id of category with type 'expense'";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(account);
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(It.IsAny<int>())).ReturnsAsync(category);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
@@ -232,19 +174,7 @@ public class AddTransactionTests
             ExpenseCategoryId = 1,
             Amount = 100
         };
-        string username = "testUser";
-        var user = new User { Id = 1, UserName = username };
-        var account1 = new Account { Id = 1, UserId = user.Id };
-        var account2 = new Account { Id = 2, UserId = user.Id };
-        var category1 = new Category { Id = 1, Name = "Food", Type = "expense" };
-        var category2 = new Category { Id = 4, Name = "Salary", Type = "income" };
         string expectedExceptionMessage = "FromAccountId and ToAccountId can not be the same";
-
-        _mockUserRepository.Setup(repo => repo.FindByNameAsync(username)).ReturnsAsync(user);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(account1);
-        _mockAccountRepository.Setup(repo => repo.GetItemAsync(2)).ReturnsAsync(account2);
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(1)).ReturnsAsync(category1);
-        _mockCategoryRepository.Setup(repo => repo.GetItemAsync(4)).ReturnsAsync(category2);
 
         var ex = Assert.ThrowsAsync<Exception>(async () => await _transactionService.AddTransaction(newTransaction, username));
 
