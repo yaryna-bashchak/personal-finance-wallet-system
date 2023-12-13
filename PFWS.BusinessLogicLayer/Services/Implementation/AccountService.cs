@@ -50,8 +50,7 @@ public class AccountService : IAccountService
     public async Task<List<GetAccountDto>> GetUserAccounts(string username)
     {
         var user = await GetUserByUsername(username);
-        var allAccounts = await _repositoryBase.GetAllItemsAsync();
-        var userAccounts = allAccounts.Where(account => account.UserId == user.Id);
+        var userAccounts = await _repositoryBase.FindByConditionAsync(account => account.UserId == user.Id);
 
         var userAccountsDto = userAccounts.Select(MapToAccountDto).ToList();
 
