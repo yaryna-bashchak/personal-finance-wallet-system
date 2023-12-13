@@ -36,7 +36,6 @@ public class AccountsControllerTests
         Assert.That(okResult?.Value, Is.EqualTo(expectedAccount));
     }
 
-
     [Test]
     public async Task GetUserAccounts_WithValidAccounts_ReturnsOk()
     {
