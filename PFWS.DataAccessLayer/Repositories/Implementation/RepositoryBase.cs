@@ -29,16 +29,9 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
 
     public async Task AddItemAsync(T newItem)
     {
-        try
-        {
-            newItem.Id = _context.Set<T>().Max(s => s.Id) + 1;
-            await _context.Set<T>().AddAsync(newItem);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        newItem.Id = _context.Set<T>().Max(s => s.Id) + 1;
+        await _context.Set<T>().AddAsync(newItem);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateItemAsync(int id, T updatedItem)
@@ -57,15 +50,8 @@ public class RepositoryBase<T> : IRepositoryBase<T> where T : class, IEntityBase
 
     public async Task DeleteItemAsync(T item)
     {
-        try
-        {
-            _context.Set<T>().Remove(item);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception)
-        {
-            throw;
-        }
+        _context.Set<T>().Remove(item);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<List<T>> FindByConditionAsync(Expression<Func<T, bool>> expression)
